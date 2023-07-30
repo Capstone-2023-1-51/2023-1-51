@@ -1,0 +1,70 @@
+import subprocess
+import glob
+from solcx import compile_source
+
+# 소스코드 컴파일
+def compile_source_file(file_path):
+    with open(file_path, 'r', encoding='UTF8') as f:
+        source = f.read()
+    return compile_source(source)
+
+# 솔리디티 컴파일러 버전 추출
+def extract_compiler_version(sol_file_path):
+    with open(sol_file_path, 'r', encoding='UTF8') as file:
+        lines = file.readlines()
+        for line in lines:
+            if line.startswith("pragma solidity"):
+                version = line.split(" ")[2].strip('^;\n')
+                print(version)
+                return version
+
+# 솔리디티 컴파일러 해당 버전 설치
+def install_version(version):
+    cmd_command = f"solc-select install {version}"
+    install_process = subprocess.Popen(cmd_command, stdout=subprocess.PIPE, shell=True)
+    output, error = install_process.communicate()
+    print(output.decode())
+
+# 솔리디티 컴파일러 버전 선택
+def select_version(version):
+    cmd_command = f"solc-select use {version}"
+    select_process = subprocess.Popen(cmd_command, stdout=subprocess.PIPE, shell=True)
+    output, error = select_process.communicate()
+    print(output.decode())
+
+# 솔리디티 컴파일러 버전 확인
+def check_version():
+    check_cmd = "solc --version"
+    check_process = subprocess.Popen(check_cmd, stdout=subprocess.PIPE, shell=True)
+    output, error = check_process.communicate()
+    print(output.decode())
+
+
+versions = set()    # 설치된 버전
+folder_path = 'E:\sol'
+files = glob.glob(folder_path + '/*.sol')
+
+file_num = 1
+for file in files:
+    version = extract_compiler_version(file)
+    if version not in versions:
+        install_version(version)
+        versions.add(version)
+
+    select_version(version)
+    check_version()
+
+    compiled_sol = compile_source_file(file)
+    keys = compiled_sol.keys()
+    for key in keys:
+        strs = key.split(':')
+        bin_file_path = folder_path + '\\' + str(file_num) + strs[1] + '.bin'
+        opcode_file_path = folder_path + '\\' + str(file_num) + strs[1] + 'opcodes.txt'
+        bytecode = compiled_sol[key]['bin']
+        opcodes = compiled_sol[key]['opcodes']
+        with open(bin_file_path, 'w') as f:
+            f.write(bytecode)
+        with open(opcode_file_path, 'w') as f:
+            f.write(opcodes)
+
+    file_num = file_num + 1
