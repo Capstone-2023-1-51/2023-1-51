@@ -24,14 +24,24 @@ def create_pixels(bytecode):
             if n != 1:
                 b = int(bytecode[i:i + 2], 16)
                 i += 2 * (n - 1)
-        pixel_colors.append((r, g, b))
+        if len(pixel_colors) < 10000:
+            pixel_colors.append((r, g, b))
+        else:
+            break
+
+    while len(pixel_colors) < 10000:
+        pixel_colors.append((0, 0, 0))
+
+    if i != len(bytecode):
+        pixel_colors = []
     return pixel_colors
 
 
 def create_image(file_name, pixel_colors):
-    width = len(pixel_colors)
+    width = 10000
     if width != 0:
         image = Image.new('RGB', (width, 1))  # 이미지 생성
         pixels = pixel_colors   # 픽셀 색상 설정
         image.putdata(pixels)   # 이미지에 픽셀 색상 적용
-        image.save('./images/' + file_name + '.png')
+        image.save(file_name + '.png')
+
