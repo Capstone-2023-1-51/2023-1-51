@@ -1,7 +1,8 @@
 import glob
 import createImage
 import compileSol
-
+import os
+from keras.models import load_model
 def preprocessing(folder_path):
     versions = set()  # 설치된 버전
     files = glob.glob(folder_path + '/*.sol')
@@ -70,8 +71,19 @@ def preprocessing(folder_path):
 
 
 def main():
-    folder_path = 'E:/sol'
-    preprocessing(folder_path)
-
+    #folder_path = 'E:/sol'
+    #preprocessing(folder_path)
+    # # 모델 로딩
+    # model = load_model('my_model.h5')
+    #
+    # # 이미지 폴더 경로
+    # image_folder = './images/yes'
+    # class_index = 1  # 클래스 인덱스 설정 (예: "yes" 클래스)
+    #
+    # # 이미지 폴더 내의 모든 이미지 파일에 대해 Grad-CAM 시각화
+    # for image_name in os.listdir(image_folder):
+    #     image_path = os.path.join(image_folder, image_name)
+    #     visualize_grad_cam(image_path, model, class_index)
+    #
 
 main()
