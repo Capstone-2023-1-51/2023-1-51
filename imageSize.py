@@ -4,6 +4,7 @@ import glob
 import csv
 import pandas as pd
 
+
 def get_image_size(folder_path):
     # 이미지 너비 정보 저장할 리스트
     image_widths = []
@@ -18,12 +19,14 @@ def get_image_size(folder_path):
 
     return image_widths
 
+
 def save_to_csv(image_widths, csv_filename):
     with open(csv_filename, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(["Image_widths"])
         for size in image_widths:
             writer.writerow([size])
+
 
 def plot_image_sizes_histogram(image_widths):
     # 히스토그램 그래프 그리기

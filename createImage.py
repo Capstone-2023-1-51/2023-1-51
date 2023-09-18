@@ -44,4 +44,3 @@ def create_image(file_name, pixel_colors):
         pixels = pixel_colors   # 픽셀 색상 설정
         image.putdata(pixels)   # 이미지에 픽셀 색상 적용
         image.save(file_name + '.png')
-

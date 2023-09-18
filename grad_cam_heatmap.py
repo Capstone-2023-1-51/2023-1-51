@@ -2,7 +2,6 @@ import numpy as np
 import tensorflow as tf
 from keras.models import Model
 import cv2
-import matplotlib.pyplot as plt
 import os
 import csv
 
@@ -49,17 +48,8 @@ def get_vulnerability_location(image_name, image_path):
     input_image = cv2.resize(input_image, (10000, 1))
     input_image = input_image / 255.0  # Normalize pixel values
 
-    class_index, heatmap_list= grad_cam(model, np.expand_dims(input_image, axis=0), class_index=1,
+    class_index, heatmap_list = grad_cam(model, np.expand_dims(input_image, axis=0), class_index=1,
                                     layer_name='concatenate')
 
-    file_name = image_name.split('.')[0] + '.csv'
-    file_path = os.path.join('./heatmap_list', file_name)
-    with open(file_path, mode='w', newline='') as file:
-        writer = csv.writer(file)
-        for row in heatmap_list:
-            writer.writerow(row)
-
+    print(heatmap_list[:10])
     return np.where(heatmap_list >= heatmap_list.max())[1]
-
-
-

@@ -1,36 +1,41 @@
-from keras.layers import Input, DepthwiseConv2D, Conv2D, concatenate, GlobalMaxPooling2D, Dense
-from keras.preprocessing.image import ImageDataGenerator  # 경로 수정
-from keras.models import Model
+import tensorflow as tf
+from keras.layers import Input, DepthwiseConv2D, Conv2D, concatenate, GlobalMaxPooling2D, Dense, Flatten
+from keras.preprocessing.image import ImageDataGenerator
 
 
-def build_cnn_model2(input_shape):
-    inputs = Input(shape=input_shape)
+def depthwise_separable_conv_block(input_layer, kernel_size):
+    x = DepthwiseConv2D(kernel_size, padding='same', activation='relu')(input_layer)
+    x = Conv2D(10, 1, activation='relu')(x)
+    return x
 
-    # Depthwise Separable Convolution
-    dw_conv = DepthwiseConv2D((1, 3), padding='same', activation='relu')(inputs)
 
-    # Convolution 레이어 반복
-    conv_layers = [dw_conv]  # 레이어 결과를 저장할 리스트를 초기화
-    for filters in [64, 128, 256]:
-        conv = Conv2D(filters, (1, 3), padding='same', activation='relu')(conv_layers[-1])  # 마지막 레이어 결과 사용
-        conv_layers.append(conv)
+def build_cnn_model(input_shape):
+    input_layer = Input(shape=input_shape)
 
-    # Concatenate 레이어를 통해 이전 레이어 결과 결합
-    combined = concatenate(conv_layers, axis=-1)
+    # 크기별 Depthwise Convolution 연산 수행
+    x = depthwise_separable_conv_block(input_layer, (1, 1))
+    conv_blocks = [x]
+    for kernel_size in range(2, 11):
+        x = depthwise_separable_conv_block(x, (1, kernel_size))
+        conv_blocks.append(x)
 
-    # Global Max Pooling
-    gmp = GlobalMaxPooling2D()(combined)
+    # 연산 결과 합치기
+    concatenated = concatenate(conv_blocks, axis=-1)
+    conv = Conv2D(64, (1, 3), padding='same', activation='relu')(concatenated)
 
+    gmp = GlobalMaxPooling2D()(conv)
     # Fully Connected 및 Output 레이어
-    fc1 = Dense(128, activation='relu')(gmp)
+    fc1 = Dense(256, activation='relu')(gmp)
     output = Dense(1, activation='sigmoid')(fc1)
 
-    model = Model(inputs, output)
+    # 모델 생성
+    model = tf.keras.Model(inputs=input_layer, outputs=output)
     return model
 
+
 # 모델 구축
-input_shape = (1, 10000, 3)  # 이미지의 입력 형태 설정 (예: 224x224 컬러 이미지)
-model = build_cnn_model2(input_shape)
+input_shape = (1, 10000, 3)  # 이미지의 입력 형태 설정
+model = build_cnn_model(input_shape)
 
 # 모델 컴파일
 model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])  # 손실 함수 변경
@@ -58,3 +63,5 @@ model.fit(train_generator, epochs=10)
 
 # 모델 저장
 model.save('my_model.h5')
+
+
