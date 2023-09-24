@@ -67,3 +67,7 @@ def preprocessing(folder_path):
 
             createImage.create_image(file_name, pixel_colors)
         file_num = file_num + 1
+
+
+folder_path = 'E:/sol'      # 솔리디티 파일 폴더 위치
+preprocessing(folder_path)
