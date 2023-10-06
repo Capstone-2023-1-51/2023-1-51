@@ -2,8 +2,6 @@ import numpy as np
 import tensorflow as tf
 from keras.models import Model
 import cv2
-import os
-import csv
 
 
 def grad_cam(input_model, image, class_index, layer_name):
@@ -39,9 +37,9 @@ def grad_cam(input_model, image, class_index, layer_name):
     return predicted_class, heatmap_list
 
 
-def get_vulnerability_location(image_name, image_path):
+def get_vulnerability_location(image_path):
     # Load your pre-trained CNN model
-    model = tf.keras.models.load_model('my_model2.h5')
+    model = tf.keras.models.load_model('my_model1.h5')
 
     # Load and preprocess your input image (reshape to (1, height, width, channels))
     input_image = cv2.imread(image_path)
@@ -51,5 +49,4 @@ def get_vulnerability_location(image_name, image_path):
     class_index, heatmap_list = grad_cam(model, np.expand_dims(input_image, axis=0), class_index=1,
                                     layer_name='concatenate')
 
-    print(heatmap_list[:10])
     return np.where(heatmap_list >= heatmap_list.max())[1]

@@ -38,15 +38,15 @@ def build_cnn_model(input_shape):
     return model
 
 
-# # 모델 구축
-# input_shape = (1, 10000, 3)  # 이미지의 입력 형태 설정
-# model = build_cnn_model(input_shape)
-#
-# # 모델 컴파일
-# model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])  # 손실 함수 변경
-#
-# # 모델 요약 정보 출력
-# model.summary()
+# 모델 구축
+input_shape = (1, 10000, 3)  # 이미지의 입력 형태 설정
+model = build_cnn_model(input_shape)
+
+# 모델 컴파일
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])  # 손실 함수 변경
+
+# 모델 요약 정보 출력
+model.summary()
 
 # 데이터 로딩 및 전처리 설정
 data_generator = ImageDataGenerator(
@@ -76,21 +76,20 @@ y = np.array(all_labels)
 X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=42)
 X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
 
-# es = keras.callbacks.EarlyStopping(patience=3, restore_best_weights=True)
-#
-# # 모델 학습
-# history = model.fit(X_train, y_train,
-#                     epochs=1000,
-#                     validation_data=(X_val, y_val),
-#                     callbacks=[es]
-#                     )
-#
-# history_df = pd.DataFrame(history.history)
-# history_df.to_csv('history.csv', index=False)
-#
-# # 모델 저장
-# model.save('my_model1.h5')
-model = tf.keras.models.load_model('my_model1.h5')
+es = keras.callbacks.EarlyStopping(patience=3, restore_best_weights=True)
+
+# 모델 학습
+history = model.fit(X_train, y_train,
+                    epochs=1000,
+                    validation_data=(X_val, y_val),
+                    callbacks=[es]
+                    )
+
+history_df = pd.DataFrame(history.history)
+history_df.to_csv('history.csv', index=False)
+
+# 모델 저장
+model.save('my_model1.h5')
 
 print(model.evaluate(X_test, y_test))
 
