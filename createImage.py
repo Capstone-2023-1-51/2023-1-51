@@ -32,7 +32,7 @@ def create_pixels(bytecode):
     while len(pixel_colors) < 10000:
         pixel_colors.append((0, 0, 0))
 
-    if i != len(bytecode):
+    if i < len(bytecode):
         pixel_colors = []
     return pixel_colors
 

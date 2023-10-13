@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from keras.layers import Input, DepthwiseConv2D, Conv2D, concatenate, GlobalMaxPooling2D, Dense, Flatten
+from keras.layers import Input, DepthwiseConv2D, Conv2D, concatenate, GlobalMaxPooling2D, Dense
 from keras.preprocessing.image import ImageDataGenerator
 import keras.callbacks
 from sklearn.metrics import classification_report, confusion_matrix
@@ -90,7 +90,6 @@ history_df.to_csv('history.csv', index=False)
 
 # 모델 저장
 model.save('my_model1.h5')
-
 print(model.evaluate(X_test, y_test))
 
 y_pred = model.predict(X_test)
