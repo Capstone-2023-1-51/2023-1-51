@@ -4,7 +4,7 @@ from keras.models import Model
 import cv2
 
 
-def grad_cam(input_model, image, class_index, layer_name):
+def grad_cam(input_model, image, layer_name):
     # Get the model's prediction for the input image
     prediction = input_model.predict(image)
 
@@ -16,7 +16,7 @@ def grad_cam(input_model, image, class_index, layer_name):
     with tf.GradientTape() as tape:
         last_conv_layer_output = gradient_model(image)
         tape.watch(last_conv_layer_output)
-        target_class_output = last_conv_layer_output[0, :, :, class_index]
+        target_class_output = last_conv_layer_output[0, :, :, 0]
 
     gradients = tape.gradient(target_class_output, last_conv_layer_output)
 
@@ -32,7 +32,6 @@ def grad_cam(input_model, image, class_index, layer_name):
     # Resize the heatmap to the input image's dimensions
     heatmap = cv2.resize(heatmap, (image.shape[2], image.shape[1]))
     heatmap_list = heatmap.copy()
-
     return prediction, heatmap_list
 
 
@@ -42,7 +41,7 @@ def get_vulnerability_location(image_path, model):
     input_image = cv2.resize(input_image, (10000, 1))
     input_image = input_image / 255.0  # Normalize pixel values
 
-    predict, heatmap_list = grad_cam(model, np.expand_dims(input_image, axis=0), class_index=1,
-                                    layer_name='concatenate')
+    predict, heatmap_list = grad_cam(model, np.expand_dims(input_image, axis=0),
+                                    layer_name='conv2d_10')
 
-    return predict, np.where(heatmap_list >= heatmap_list.max())[1]
+    return predict, np.where(heatmap_list == heatmap_list.max())[1]
