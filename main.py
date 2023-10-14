@@ -3,29 +3,50 @@ from createImage import *
 import tensorflow as tf
 from grad_cam_heatmap import get_vulnerability_location
 
-# 사용자에게 function을 출력해줄 함수
-def find_function_start(index, source):
-    # 현재 인덱스에서부터 "function" 키워드를 찾음
-    start = index
-    while start > 0 and source[start] != 'f':
-        start -= 1
 
-    # "function" 키워드를 찾았을 경우, 함수의 시작을 찾음
-    if source[start:start + 8] == "function":
-        return start
+def get_enclosing_function(source, begin, end):
+    # 라인별로 나누기
+    lines = source.split('\n')
 
-    return None
+    # 타겟 라인과 컬럼 찾기
+    total_chars = 0
+    target_line_begin = target_line_end = None
+    for i in range(len(lines)):
+        if total_chars + len(lines[i]) >= begin and target_line_begin is None:
+            target_line_begin = i
+
+        if total_chars + len(lines[i]) >= end:
+            target_line_end = i
+            break
+
+        total_chars += len(lines[i]) + 1  # '\n' 문자 고려
+
+    if target_line_begin is None or target_line_end is None:
+        return "Target index out of range."
+
+    # 함수 시작과 끝 찾기
+    start_index = end_index = max(target_line_begin, target_line_end)
+
+    while start_index > 0 and 'function' not in lines[start_index] and 'contract' not in lines[start_index]:
+        start_index -= 1
+
+    while end_index < len(lines) - 1 and '}' not in lines[end_index] and 'function' not in lines[end_index]:
+        end_index += 1
+
+    # 함수 반환하기
+    return '\n'.join(lines[start_index:end_index + 1])
 
 
 def main():
-    # file_path = "E:/sol/buggy1_0x2c2a721d303dc4273725c6aa8704ec8d1d3d17b1.sol" 67%
-    file_path = "E:/sol/buggy1_0xc24c64b9909f0b2f947f2f36bc7d46ae848599e0.sol"
+    file_path = ""
     with open(file_path, "r") as file:
         source = file.read()
 
     version = extract_compiler_version(source)
     if version[0] == '^':
         version = version[1:]
+
+    install_version(version)
     select_version(version)
 
     compiled_sol = compile_source(source)
@@ -63,9 +84,6 @@ def main():
                 continue
             begin = asms[index].get('begin')
             end = asms[index].get('end')
-
-            function_start = find_function_start(begin, source)
-
             print('---------------------------------------------------')
             print('opcode idx:', index)
             print('begin:', begin)
@@ -75,14 +93,7 @@ def main():
             print('End line:', source.count('\n', 0, end) + 1)
             print('source:\n', source[begin:end + 1])
             print('---------------------------------------------------')
-            # 함수 출력
-            if function_start is not None:
-                # 함수 전체를 출력
-                function_end = end
-                function_source = source[function_start:function_end + 1]
-                print('Function source:')
-                print(function_source)
-            else:
-                print('Function not found')
+            print('Function source:')
+            print(get_enclosing_function(source, begin, end))
 
 main()
