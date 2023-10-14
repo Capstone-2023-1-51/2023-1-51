@@ -12,8 +12,11 @@ def preprocessing(folder_path):
     compileSol.select_version(version)
     for file in files:
         print(file)
+        with open(file, 'r', encoding='UTF8') as f:
+            source = f.read()
+
         version_in_use = version
-        version = compileSol.extract_compiler_version(file)
+        version = compileSol.extract_compiler_version(source)
         if version is None:
             continue
         if version[0] == '^':
@@ -27,7 +30,7 @@ def preprocessing(folder_path):
             compileSol.select_version(version)
 
         try:
-            compiled_sol = compileSol.compile_source_file(file)
+            compiled_sol = compileSol.compile_source_file(source)
         except Exception as e:
             with open('./exception/compile/' + str(file_num), 'w') as f:
                 s = version + '\n' + file + '\n' + str(e)
@@ -67,7 +70,3 @@ def preprocessing(folder_path):
 
             createImage.create_image(file_name, pixel_colors)
         file_num = file_num + 1
-
-
-folder_path = 'E:/sol'      # 솔리디티 파일 폴더 위치
-preprocessing(folder_path)

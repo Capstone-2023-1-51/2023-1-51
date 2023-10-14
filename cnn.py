@@ -38,62 +38,68 @@ def build_cnn_model(input_shape):
     return model
 
 
-# 모델 구축
-input_shape = (1, 10000, 3)  # 이미지의 입력 형태 설정
-model = build_cnn_model(input_shape)
+def load_data(image_path):
+    # 데이터 로딩 및 전처리 설정
+    data_generator = ImageDataGenerator(
+        rescale=1.0 / 255
+    )
 
-# 모델 컴파일
-model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])  # 손실 함수 변경
+    generator = data_generator.flow_from_directory(
+        image_path,
+        target_size=(1, 10000),
+        batch_size=32,
+        class_mode='binary',  # 클래스 모드 변경
+    )
 
-# 모델 요약 정보 출력
-model.summary()
+    all_images = []
+    all_labels = []
+    for _ in range(len(generator)):
+        batch_images, batch_labels = generator.next()
+        all_images.extend(batch_images)
+        all_labels.extend(batch_labels)
 
-# 데이터 로딩 및 전처리 설정
-data_generator = ImageDataGenerator(
-    rescale=1.0 / 255
-)
+    # NumPy 배열로 변환
+    X = np.array(all_images)
+    y = np.array(all_labels)
 
-# 학습 데이터 로딩
-generator = data_generator.flow_from_directory(
-    './images/',
-    target_size=(1, 10000),
-    batch_size=32,
-    class_mode='binary',  # 클래스 모드 변경
-)
+    # train, validation, test로 나누기
+    X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=42)
+    X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
 
-all_images = []
-all_labels = []
-for _ in range(len(generator)):
-    batch_images, batch_labels = generator.next()
-    all_images.extend(batch_images)
-    all_labels.extend(batch_labels)
+    return X_train, X_val, X_test, y_train, y_val, y_test
 
-# NumPy 배열로 변환
-X = np.array(all_images)
-y = np.array(all_labels)
 
-# train, validation, test로 나누기
-X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=42)
-X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
+def cnn():
+    image_path = './images/'
+    X_train, X_val, X_test, y_train, y_val, y_test = load_data(image_path)
 
-es = keras.callbacks.EarlyStopping(patience=3, restore_best_weights=True)
+    # 모델 구축
+    input_shape = (1, 10000, 3)  # 이미지의 입력 형태 설정
+    model = build_cnn_model(input_shape)
 
-# 모델 학습
-history = model.fit(X_train, y_train,
-                    epochs=1000,
-                    validation_data=(X_val, y_val),
-                    callbacks=[es]
-                    )
+    # 모델 컴파일
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])  # 손실 함수 변경
 
-history_df = pd.DataFrame(history.history)
-history_df.to_csv('history.csv', index=False)
+    # 모델 요약 정보 출력
+    model.summary()
 
-# 모델 저장
-model.save('my_model1.h5')
-print(model.evaluate(X_test, y_test))
+    es = keras.callbacks.EarlyStopping(patience=3, restore_best_weights=True)
+    # 모델 학습
+    history = model.fit(X_train, y_train,
+                        epochs=1000,
+                        validation_data=(X_val, y_val),
+                        callbacks=[es]
+                        )
 
-y_pred = model.predict(X_test)
-y_pred_binary = np.array(y_pred) >= 0.5
+    history_df = pd.DataFrame(history.history)
+    history_df.to_csv('history.csv', index=False)
 
-print(classification_report(y_test, y_pred_binary))
-print(confusion_matrix(y_test, y_pred_binary))
+    # 모델 저장
+    model.save('my_model1.h5')
+    print(model.evaluate(X_test, y_test))
+
+    y_pred = model.predict(X_test)
+    y_pred_binary = np.array(y_pred) >= 0.5
+
+    print(classification_report(y_test, y_pred_binary))
+    print(confusion_matrix(y_test, y_pred_binary))

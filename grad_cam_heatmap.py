@@ -6,8 +6,7 @@ import cv2
 
 def grad_cam(input_model, image, class_index, layer_name):
     # Get the model's prediction for the input image
-    predictions = input_model.predict(image)
-    predicted_class = np.argmax(predictions)
+    prediction = input_model.predict(image)
 
     # Extract the target layer's output tensor
     target_layer = input_model.get_layer(layer_name)
@@ -34,19 +33,16 @@ def grad_cam(input_model, image, class_index, layer_name):
     heatmap = cv2.resize(heatmap, (image.shape[2], image.shape[1]))
     heatmap_list = heatmap.copy()
 
-    return predicted_class, heatmap_list
+    return prediction, heatmap_list
 
 
-def get_vulnerability_location(image_path):
-    # Load your pre-trained CNN model
-    model = tf.keras.models.load_model('my_model1.h5')
-
+def get_vulnerability_location(image_path, model):
     # Load and preprocess your input image (reshape to (1, height, width, channels))
     input_image = cv2.imread(image_path)
     input_image = cv2.resize(input_image, (10000, 1))
     input_image = input_image / 255.0  # Normalize pixel values
 
-    class_index, heatmap_list = grad_cam(model, np.expand_dims(input_image, axis=0), class_index=1,
+    predict, heatmap_list = grad_cam(model, np.expand_dims(input_image, axis=0), class_index=1,
                                     layer_name='concatenate')
 
-    return np.where(heatmap_list >= heatmap_list.max())[1]
+    return predict, np.where(heatmap_list >= heatmap_list.max())[1]
